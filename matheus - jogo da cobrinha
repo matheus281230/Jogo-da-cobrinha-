@@ -70,16 +70,16 @@ def proc_colisoes():
     if xq < 0 or xq >= lagura_tela or yq < 0 or yq >= altura_tela:
         reiniciar()
 
-        cabeca = [xq,yq]
-        for pedaco in corpo_cobra[:-1]:
-            if pedaco == cabeca:
-                reiniciar()
+    cabeca = [xq,yq]
+    for pedaco in corpo_cobra[:-1]:
+        if pedaco == cabeca:
+            reiniciar()
        
 
         
-        if xq == comida_x and yq == comida_y:
-            tamanho_cobra += 1 
-            comida_x,comida_y = gerar_comida()
+    if xq == comida_x and yq == comida_y:
+        tamanho_cobra += 1 
+        comida_x,comida_y = gerar_comida()
             
             
 def atualizar_movimento():
