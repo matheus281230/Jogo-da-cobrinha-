@@ -1,27 +1,23 @@
 import pygame
 import random
 
-# --- CONFIGURAÇÕES ---
 largura_tela = 800
-altura_tela = 500  # Altura solicitada
+altura_tela = 500
 lado_quadrado = 20
 fps = 10
 
-# Cores solicitadas
-COR_FUNDO = "#1A1A1D"       # Escuro
-COR_COBRA_CORPO = "#3498DB" # Azul
-COR_COBRA_BORDA = "#2980B9" # Azul escuro
-COR_COMIDA = "#F1C40F"      # Amarelo
+COR_FUNDO = "#121212"
+COR_COBRA_CORPO = "#F39C12"
+COR_COBRA_BORDA = "#D35400"
+COR_COMIDA = "#9B59B6"
 
 def gerar_comida():
-    # Garante que a comida apareça em um múltiplo de 20 para alinhar com a cobra
     x = random.randrange(0, largura_tela, lado_quadrado)
     y = random.randrange(0, altura_tela, lado_quadrado)
     return x, y
 
 def reiniciar():
     global xq, yq, move_x, move_y, corpo_cobra, tamanho_cobra, comida_x, comida_y
-    # O segredo: forçar o início para um múltiplo de 20 (ex: 240 em vez de 250)
     xq = (largura_tela // 2 // lado_quadrado) * lado_quadrado
     yq = (altura_tela // 2 // lado_quadrado) * lado_quadrado
     move_x, move_y = 0, 0
@@ -35,19 +31,15 @@ def desenhar_placar(tela, pontos):
     imagem_texto = fonte.render(texto, True, "#FFFFFF")
     tela.blit(imagem_texto, (10, 10))
 
-# Inicialização
 pygame.init()
 tela = pygame.display.set_mode((largura_tela, altura_tela))
-pygame.display.set_caption("Snake Game - Matheus")
+pygame.display.set_caption("jogo da cobrinha - Matheus")
 relogio = pygame.time.Clock()
 
-# Variáveis de estado iniciais
 rodando = True
 reiniciar()
 
-# --- LOOP PRINCIPAL ---
 while rodando:
-    # 1. Eventos
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
@@ -63,36 +55,29 @@ while rodando:
             elif evento.key == pygame.K_ESCAPE:
                 rodando = False
 
-    # 2. Lógica de Movimento e Colisão (só acontece se a cobra estiver se movendo)
     if move_x != 0 or move_y != 0:
         xq += move_x
         yq += move_y
 
-        # Colisão com as bordas
         if xq < 0 or xq >= largura_tela or yq < 0 or yq >= altura_tela:
             reiniciar()
         
-        # Colisão com a comida (checa ANTES de atualizar o corpo)
         if xq == comida_x and yq == comida_y:
             tamanho_cobra += 1
             comida_x, comida_y = gerar_comida()
 
-        # Atualização do corpo
         cabeca = [xq, yq]
-        if cabeca in corpo_cobra: # Colisão com o próprio corpo
+        if cabeca in corpo_cobra:
             reiniciar()
         else:
             corpo_cobra.append(cabeca)
             if len(corpo_cobra) > tamanho_cobra:
                 del corpo_cobra[0]
 
-    # 3. Desenho
     tela.fill(COR_FUNDO)
 
-    # Desenha Comida
     pygame.draw.rect(tela, COR_COMIDA, (comida_x, comida_y, lado_quadrado, lado_quadrado))
 
-    # Desenha Cobra
     for pedaco in corpo_cobra:
         pygame.draw.rect(tela, COR_COBRA_CORPO, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado))
         pygame.draw.rect(tela, COR_COBRA_BORDA, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado), 1)
