@@ -58,3 +58,69 @@ def proc_eventos():
                 move_x = lado_quadrado
             if evento.key == pygame.K_ESCAPE:
                 rodando = False
+
+def proc_colisoes():
+    global xq, yq, corpo_cobra, comida_x, comida_y, tamanho_cobra
+
+    # Colisão com as bordas
+    if xq < 0 or xq >= lagura_tela or yq < 0 or yq >= altura_tela:
+        reiniciar()
+
+    # Colisão com o próprio corpo
+    cabeca = [xq, yq]
+    for pedaco in corpo_cobra[:-1]:
+        if pedaco == cabeca:
+            reiniciar()
+
+    # Colisão com a comida
+    if xq == comida_x and yq == comida_y:
+        tamanho_cobra += 1 
+        comida_x, comida_y = gerar_comida()
+
+def atualizar_movimento():
+    global xq, yq, corpo_cobra, tamanho_cobra
+    xq += move_x
+    yq += move_y
+
+    cabeca_atual = [xq, yq]
+    corpo_cobra.append(cabeca_atual)
+    
+    if len(corpo_cobra) > tamanho_cobra:
+        del corpo_cobra[0]
+
+def desenhar_placar(tela, pontuação):
+    texto = f"Pontos: {pontuação - 1}" 
+    imagem_texto = fonte.render(texto, True, "#FFFFFF")
+    tela.blit(imagem_texto, (10, 10))
+
+if __name__ == "__main__":
+    pygame.init()
+    tela = pygame.display.set_mode((lagura_tela, altura_tela))
+    pygame.display.set_caption("Trabalho de Pygame - Matheus")
+    relogio = pygame.time.Clock()
+    fonte = pygame.font.SysFont("Arial", 25, bold=True)
+
+    while rodando:
+        proc_eventos()
+
+        if move_x != 0 or move_y != 0:
+            atualizar_movimento()
+            proc_colisoes()
+
+        # Desenho
+        tela.fill(COR_FUNDO)
+
+        # Desenha Comida
+        pygame.draw.rect(tela, COR_COMIDA, (comida_x, comida_y, lado_quadrado, lado_quadrado))
+
+        # Desenha Cobra
+        for pedaco in corpo_cobra:
+            pygame.draw.rect(tela, COR_COBRA_CORPO, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado))
+            # Borda do pedaço da cobra
+            pygame.draw.rect(tela, COR_COBRA_BORDA, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado), 1)
+        
+        desenhar_placar(tela, tamanho_cobra)
+        pygame.display.flip()
+        relogio.tick(fps)
+
+    pygame.quit()
