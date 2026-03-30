@@ -3,15 +3,15 @@ import random
 
 # --- CONFIGURAÇÕES ---
 lagura_tela = 800
-altura_tela = 500  # Alterado para 500 conforme solicitado
+altura_tela = 500 
 lado_quadrado = 20
-fps = 10
+fps = 12 # Aumentei um pouquinho a velocidade para ficar mais divertido
 
-# Novas Cores (Hexadecimal)
-COR_FUNDO = "#1A1A1D"       # Um cinza quase preto
-COR_COBRA_CORPO = "#3498DB" # Azul vibrante
-COR_COBRA_BORDA = "#2980B9" # Azul escuro para a borda
-COR_COMIDA = "#F1C40F"      # Amarelo
+# Cores
+COR_FUNDO = "#1A1A1D"       
+COR_COBRA_CORPO = "#3498DB" 
+COR_COBRA_BORDA = "#2980B9" 
+COR_COMIDA = "#F1C40F"      
 
 rodando = True
 xq = lagura_tela // 2
@@ -23,8 +23,9 @@ corpo_cobra = []
 tamanho_cobra = 1
 
 def gerar_comida():
-    x = random.randrange(0, lagura_tela - lado_quadrado, lado_quadrado)
-    y = random.randrange(0, altura_tela - lado_quadrado, lado_quadrado)
+    # Ajustado para garantir que a comida caia sempre dentro da grade
+    x = random.randrange(0, lagura_tela, lado_quadrado)
+    y = random.randrange(0, altura_tela, lado_quadrado)
     return x, y 
 
 comida_x, comida_y = gerar_comida()
@@ -44,47 +45,50 @@ def proc_eventos():
             rodando = False
 
         if evento.type == pygame.KEYDOWN:
+            # Bloqueia a volta imediata (não deixa a cobra virar 180° nela mesma)
             if evento.key == pygame.K_UP and move_y == 0:
                 move_x = 0
                 move_y = -lado_quadrado
-            if evento.key == pygame.K_DOWN and move_y == 0:
+            elif evento.key == pygame.K_DOWN and move_y == 0:
                 move_x = 0
                 move_y = lado_quadrado
-            if evento.key == pygame.K_LEFT and move_x == 0:
+            elif evento.key == pygame.K_LEFT and move_x == 0:
                 move_y = 0
                 move_x = -lado_quadrado
-            if evento.key == pygame.K_RIGHT and move_x == 0:
+            elif evento.key == pygame.K_RIGHT and move_x == 0:
                 move_y = 0
                 move_x = lado_quadrado
-            if evento.key == pygame.K_ESCAPE:
+            elif evento.key == pygame.K_ESCAPE:
                 rodando = False
 
-def proc_colisoes():
-    global xq, yq, corpo_cobra, comida_x, comida_y, tamanho_cobra
+def atualizar_logica():
+    global xq, yq, corpo_cobra, tamanho_cobra, comida_x, comida_y
 
-    # Colisão com as bordas
-    if xq < 0 or xq >= lagura_tela or yq < 0 or yq >= altura_tela:
-        reiniciar()
-
-    # Colisão com o próprio corpo
-    cabeca = [xq, yq]
-    for pedaco in corpo_cobra[:-1]:
-        if pedaco == cabeca:
-            reiniciar()
-
-    # Colisão com a comida
-    if xq == comida_x and yq == comida_y:
-        tamanho_cobra += 1 
-        comida_x, comida_y = gerar_comida()
-
-def atualizar_movimento():
-    global xq, yq, corpo_cobra, tamanho_cobra
+    # 1. Movimentar a cabeça
     xq += move_x
     yq += move_y
 
+    # 2. Checar colisão com as bordas
+    if xq < 0 or xq >= lagura_tela or yq < 0 or yq >= altura_tela:
+        reiniciar()
+        return
+
+    # 3. Checar se comeu a comida ANTES de mover o resto do corpo
+    if xq == comida_x and yq == comida_y:
+        tamanho_cobra += 1
+        comida_x, comida_y = gerar_comida()
+
+    # 4. Adicionar nova cabeça ao corpo
     cabeca_atual = [xq, yq]
-    corpo_cobra.append(cabeca_atual)
     
+    # Checar colisão com o próprio corpo
+    if cabeca_atual in corpo_cobra:
+        reiniciar()
+        return
+
+    corpo_cobra.append(cabeca_atual)
+
+    # 5. Manter o tamanho correto (apaga o rabo se não cresceu)
     if len(corpo_cobra) > tamanho_cobra:
         del corpo_cobra[0]
 
@@ -96,7 +100,7 @@ def desenhar_placar(tela, pontuação):
 if __name__ == "__main__":
     pygame.init()
     tela = pygame.display.set_mode((lagura_tela, altura_tela))
-    pygame.display.set_caption("Trabalho de Pygame - Matheus")
+    pygame.display.set_caption("Snake Game - Matheus")
     relogio = pygame.time.Clock()
     fonte = pygame.font.SysFont("Arial", 25, bold=True)
 
@@ -104,8 +108,7 @@ if __name__ == "__main__":
         proc_eventos()
 
         if move_x != 0 or move_y != 0:
-            atualizar_movimento()
-            proc_colisoes()
+            atualizar_logica()
 
         # Desenho
         tela.fill(COR_FUNDO)
@@ -116,7 +119,6 @@ if __name__ == "__main__":
         # Desenha Cobra
         for pedaco in corpo_cobra:
             pygame.draw.rect(tela, COR_COBRA_CORPO, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado))
-            # Borda do pedaço da cobra
             pygame.draw.rect(tela, COR_COBRA_BORDA, (pedaco[0], pedaco[1], lado_quadrado, lado_quadrado), 1)
         
         desenhar_placar(tela, tamanho_cobra)
